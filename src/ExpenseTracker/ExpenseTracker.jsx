@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, addDoc } from "firebase/firestore";
 import { db } from "../firebase";
+import AddTransactionModal from "../AddtTransactionModal/AddTransactionModal";
 
 export default function ExpenseTracker() {
   const [transactions, setTransactions] = useState([]);
-  const [showDetails, setShowDetails] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+
+  const fetchData = async () => {
+    const querySnapshot = await getDocs(collection(db, "expenses"));
+    const data = querySnapshot.docs.map((doc) => doc.data());
+    setTransactions(data);
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const querySnapshot = await getDocs(collection(db, "expenses"));
-      const data = querySnapshot.docs.map((doc) => doc.data());
-      setTransactions(data);
-    };
     fetchData();
   }, []);
 
@@ -86,11 +88,21 @@ export default function ExpenseTracker() {
         </div>
 
         <div className="text-center">
-          <button className="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition duration-300">
+          <button
+            className="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-xl shadow-md transition duration-300"
+            onClick={() => setModalIsOpen(true)}
+          >
             Add New Transaction
           </button>
         </div>
       </div>
+
+      {modalIsOpen && (
+        <AddTransactionModal
+          onClose={() => setModalIsOpen(false)}
+          onAdd={fetchData}
+        />
+      )}
     </div>
   );
 }
